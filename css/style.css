@@ -1,0 +1,92 @@
+/* 1. Warna dan ukuran disimpan di satu tempat.
+      Ubah di sini, seluruh website ikut berubah. */
+:root {
+  --biru: #14306b;
+  --biru-gelap: #0e2250;
+  --teks: #1b2433;
+  --teks-pudar: #566074;
+  --garis: #dce1ea;
+  --abu: #f3f5f9;
+  --putih: #ffffff;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* 2. Aturan dasar */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; font-family: var(--font); color: var(--teks); background: var(--putih); line-height: 1.65; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .5em; }
+p { margin: 0 0 1em; max-width: 65ch; }
+a { color: var(--biru); }
+a:focus-visible, button:focus-visible { outline: 3px solid #f2b705; outline-offset: 2px; }
+
+.wadah { width: min(100% - 2rem, 1040px); margin-inline: auto; }
+.sempit { width: min(100% - 2rem, 680px); }
+
+.lewati { position: absolute; left: -999px; background: var(--putih); padding: .5rem 1rem; }
+.lewati:focus { left: 1rem; top: 1rem; z-index: 20; }
+
+/* 3. Header dan menu (versi ponsel dulu) */
+.header { position: sticky; top: 0; z-index: 10; background: var(--putih); border-bottom: 1px solid var(--garis); }
+.header-isi { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: .75rem 0; }
+.logo { font-weight: 700; font-size: 1.1rem; color: var(--biru); text-decoration: none; }
+.tombol-menu { font: inherit; background: none; border: 1px solid var(--garis); border-radius: 6px; padding: .35rem .8rem; cursor: pointer; color: var(--biru); }
+.menu { display: none; width: 100%; flex-direction: column; padding-top: .5rem; }
+.menu.terbuka { display: flex; }
+.menu a { padding: .6rem 0; color: var(--teks); text-decoration: none; border-top: 1px solid var(--garis); }
+.menu a:hover { color: var(--biru); }
+
+/* 4. Hero */
+.hero { background: var(--biru); color: var(--putih); padding: 4rem 0 4.5rem; }
+.hero h1 { font-size: clamp(2.4rem, 8vw, 4.25rem); font-weight: 800; letter-spacing: -.02em; }
+.peran { font-size: 1.25rem; font-weight: 600; color: #b9c8ee; margin-bottom: 1rem; }
+.pengantar { font-size: 1.1rem; color: #e6ecfa; }
+.aksi { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
+.tombol { display: inline-block; padding: .7rem 1.3rem; border-radius: 6px; font-weight: 600; text-decoration: none; border: 2px solid var(--putih); }
+.tombol-terang { background: var(--putih); color: var(--biru); }
+.tombol-terang:hover { background: #e6ecfa; }
+.tombol-garis { color: var(--putih); }
+.tombol-garis:hover { background: var(--biru-gelap); }
+
+/* 5. Bagian-bagian halaman */
+.bagian { padding: 3.5rem 0; }
+.bagian h2 { font-size: 1.75rem; color: var(--biru); }
+.abu { background: var(--abu); }
+.ket { color: var(--teks-pudar); }
+
+/* Skill */
+.daftar-skill { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: .75rem; }
+.daftar-skill li { display: flex; justify-content: space-between; gap: 1rem; background: var(--putih); border: 1px solid var(--garis); border-radius: 6px; padding: .8rem 1rem; }
+.daftar-skill span { color: var(--teks-pudar); font-size: .95rem; }
+
+/* Proyek */
+.kartu-grid { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.kartu { border: 1px solid var(--garis); border-radius: 8px; padding: 1.25rem; }
+.kartu h3 { font-size: 1.15rem; margin-top: .6rem; }
+.label { display: inline-block; font-size: .85rem; font-weight: 600; color: var(--biru); background: #e6ecfa; border-radius: 4px; padding: .15rem .55rem; }
+.status { color: var(--teks-pudar); font-size: .95rem; margin: 0; }
+
+/* Layanan */
+.daftar-layanan { list-style: none; padding: 0; margin: 1.25rem 0 0; display: grid; gap: 1rem; }
+.daftar-layanan li { background: var(--putih); border-left: 4px solid var(--biru); padding: .9rem 1.1rem; }
+.daftar-layanan strong { display: block; margin-bottom: .2rem; }
+
+/* Kontak */
+.daftar-kontak { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.daftar-kontak a { font-weight: 600; }
+
+.footer { border-top: 1px solid var(--garis); padding: 1.5rem 0; color: var(--teks-pudar); font-size: .95rem; }
+
+/* 6. Layar lebih lebar (tablet dan desktop) */
+@media (min-width: 720px) {
+  .tombol-menu { display: none; }
+  .menu, .menu.terbuka { display: flex; flex-direction: row; width: auto; padding: 0; gap: 1.5rem; }
+  .menu a { border-top: none; padding: .25rem 0; }
+  .hero { padding: 6rem 0 6.5rem; }
+  .bagian { padding: 5rem 0; }
+  .daftar-skill { grid-template-columns: repeat(2, 1fr); }
+  .kartu-grid, .daftar-layanan { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Hormati pengguna yang mematikan animasi */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
