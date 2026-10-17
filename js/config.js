@@ -11,6 +11,12 @@ window.SITE_CONFIG = {
     netral: { nama: "Netral (Arial)", css: 'Arial, Helvetica, sans-serif' },
     mono: { nama: "Teknis (monospace)", css: 'ui-monospace, Consolas, "Courier New", monospace' }
   },
+  // Label proyek yang tersedia. Pilih "Proyek Klien" hanya untuk pekerjaan klien yang benar-benar ada.
+  labelProyek: ["Proyek Latihan", "Personal Project", "Demo Konsep", "Proyek Klien"],
+  // Gambar proyek hanya boleh berasal dari bucket "media" project ini
+  gambarValid: function (u) {
+    return typeof u === "string" && u.indexOf(this.url + "/storage/v1/object/public/media/") === 0 && /^https:\/\/\S+$/.test(u);
+  },
   // Tujuan tautan yang diizinkan: bagian halaman (#tentang, dst) atau tautan https://
   tujuanValid: function (t) {
     return typeof t === "string" && /^(#(beranda|tentang|skill|proyek|layanan|kontak)|https:\/\/\S+)$/.test(t);

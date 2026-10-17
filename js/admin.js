@@ -3,7 +3,7 @@
   var db = window.supabase.createClient(C.url, C.key);
   var $ = function (id) { return document.getElementById(id); };
   // S menyimpan data terakhir dari database: teks (konten), tata letak (tata), dan daftar menu
-  var S = { konten: {}, tata: {}, menu: [] };
+  var S = { konten: {}, tata: {}, menu: [], skill: [], proyek: [], layanan: [], mediaGambar: [] };
 
   var BAGIAN = [["tentang", "Tentang saya"], ["skill", "Skill"], ["proyek", "Proyek"], ["layanan", "Layanan"], ["kontak", "Kontak"]];
   var MENU_BAWAAN = [["tentang", "Tentang"], ["skill", "Skill"], ["proyek", "Proyek"], ["layanan", "Layanan"], ["kontak", "Kontak"]];
@@ -171,6 +171,7 @@
       ? p.menu.map(function (m) { return { label: String(m.label || ""), tujuan: String(m.tujuan || "") }; })
       : menuBawaan();
     S.favicon = p.favicon || null;
+    Object.keys(DAFTAR).forEach(function (k) { muatDaftar(k, p[k]); });
     isiFormulir();
     gambarMenu();
     var t = p.tema || {};
@@ -266,6 +267,217 @@
     pratinjau();
     pesan("Tema dikembalikan ke bawaan.");
   });
+  // ===== Skill, Proyek, dan Layanan =====
+  // kolom: k = nama data, jenis = text | area | url | label | gambar
+  var DAFTAR = {
+    skill: {
+      judul: "Skill", satuan: "skill", maks: 12,
+      ket: ["ket_skill", "Kalimat pengantar bagian Skill", "text", 200, "Teknologi yang sedang saya pelajari dan pakai di proyek latihan."],
+      kolom: [
+        { k: "nama", label: "Nama skill", jenis: "text", maks: 30, wajib: true },
+        { k: "status", label: "Status (misalnya: Sedang dipelajari)", jenis: "text", maks: 30 }
+      ],
+      baru: { nama: "Skill baru", status: "Sedang dipelajari" },
+      bawaan: [
+        { nama: "HTML", status: "Sedang dipelajari" }, { nama: "CSS", status: "Sedang dipelajari" },
+        { nama: "JavaScript", status: "Sedang dipelajari" }, { nama: "Git dan GitHub", status: "Sedang dipelajari" },
+        { nama: "Vercel", status: "Sedang dipelajari" }
+      ]
+    },
+    proyek: {
+      judul: "Proyek", satuan: "proyek", maks: 9,
+      catatan: "Beri label yang jujur. Pilih Proyek Klien hanya untuk pekerjaan yang benar-benar dikerjakan untuk klien. Gambar dipilih dari file yang sudah diunggah di panel Media.",
+      ket: ["ket_proyek", "Kalimat pengantar bagian Proyek", "text", 200, "Semua proyek di bawah adalah latihan pribadi, bukan pekerjaan untuk klien."],
+      kolom: [
+        { k: "judul", label: "Judul proyek", jenis: "text", maks: 60, wajib: true },
+        { k: "label", label: "Label", jenis: "label", maks: 30, wajib: true },
+        { k: "deskripsi", label: "Deskripsi singkat", jenis: "area", maks: 250 },
+        { k: "status", label: "Status (misalnya: rencana, sedang dikerjakan, selesai)", jenis: "text", maks: 40 },
+        { k: "gambar", label: "Gambar (dari Media)", jenis: "gambar", maks: 400 },
+        { k: "tautan", label: "Tautan proyek (https://, boleh kosong)", jenis: "url", maks: 200 }
+      ],
+      baru: { judul: "Proyek baru", label: "Proyek Latihan", deskripsi: "", status: "rencana", gambar: "", tautan: "" },
+      bawaan: [
+        { judul: "Website portofolio ini", label: "Personal Project", deskripsi: "Satu halaman statis dengan HTML, CSS, dan JavaScript, diterbitkan lewat Vercel.", status: "versi pertama", gambar: "", tautan: "" },
+        { judul: "Website profil UMKM", label: "Proyek Latihan", deskripsi: "Halaman untuk usaha fiktif berisi info usaha, produk, jam buka contoh, dan kontak demo.", status: "rencana", gambar: "", tautan: "" },
+        { judul: "Landing page jasa", label: "Demo Konsep", deskripsi: "Halaman promosi layanan dengan manfaat, contoh pekerjaan, dan ajakan menghubungi.", status: "rencana", gambar: "", tautan: "" }
+      ]
+    },
+    layanan: {
+      judul: "Layanan", satuan: "layanan", maks: 8,
+      ket: ["ket_layanan", "Kalimat pengantar bagian Layanan", "text", 200, "Proyek kecil yang saat ini bisa saya kerjakan sambil terus belajar."],
+      kolom: [
+        { k: "judul", label: "Nama layanan", jenis: "text", maks: 50, wajib: true },
+        { k: "deskripsi", label: "Deskripsi singkat", jenis: "area", maks: 200 }
+      ],
+      baru: { judul: "Layanan baru", deskripsi: "" },
+      bawaan: [
+        { judul: "Landing page sederhana", deskripsi: "Satu halaman untuk mempromosikan jasa atau produk." },
+        { judul: "Website profil UMKM", deskripsi: "Halaman statis berisi info usaha dan kontak." },
+        { judul: "Perbaikan tampilan responsif", deskripsi: "Merapikan tampilan website agar nyaman di ponsel." }
+      ]
+    }
+  };
+
+  function salin(x) { return JSON.parse(JSON.stringify(x)); }
+  // Mengisi daftar dari database (atau bawaan jika belum pernah disimpan)
+  function muatDaftar(key, data) {
+    var d = DAFTAR[key];
+    S[key] = Array.isArray(data) ? data.map(function (item) {
+      var o = {};
+      d.kolom.forEach(function (kol) { o[kol.k] = String((item && item[kol.k]) || ""); });
+      return o;
+    }) : salin(d.bawaan);
+    $(d.ket[0]).value = S.konten[d.ket[0]] || "";
+    gambarDaftar(key);
+  }
+
+  function kontrol(kol, item) {
+    var el;
+    if (kol.jenis === "label" || kol.jenis === "gambar") {
+      el = document.createElement("select");
+      var pilihan = kol.jenis === "label"
+        ? C.labelProyek.map(function (x) { return [x, x]; })
+        : [["", "Tanpa gambar"]].concat(S.mediaGambar.map(function (m) { return [m.url, m.nama]; }));
+      if (kol.jenis === "gambar" && item.gambar && !S.mediaGambar.some(function (m) { return m.url === item.gambar; })) {
+        pilihan.push([item.gambar, "Gambar saat ini"]);
+      }
+      pilihan.forEach(function (x) {
+        var o = document.createElement("option");
+        o.value = x[0]; o.textContent = x[1];
+        el.appendChild(o);
+      });
+      el.value = item[kol.k];
+      el.addEventListener("change", function () { item[kol.k] = el.value; });
+    } else {
+      el = document.createElement(kol.jenis === "area" ? "textarea" : "input");
+      if (kol.jenis !== "area") el.type = kol.jenis === "url" ? "url" : "text";
+      el.maxLength = kol.maks;
+      el.value = item[kol.k];
+      el.addEventListener("input", function () { item[kol.k] = el.value; });
+    }
+    return el;
+  }
+
+  function gambarDaftar(key) {
+    var d = DAFTAR[key], w = $("editor-" + key);
+    if (!w) return;
+    w.textContent = "";
+    S[key].forEach(function (item, i) {
+      var kotak = document.createElement("div");
+      kotak.className = "item-daftar";
+      var judul = document.createElement("strong");
+      judul.textContent = d.satuan.charAt(0).toUpperCase() + d.satuan.slice(1) + " " + (i + 1);
+      kotak.appendChild(judul);
+      d.kolom.forEach(function (kol) {
+        var l = document.createElement("label");
+        l.appendChild(document.createTextNode(kol.label));
+        l.appendChild(kontrol(kol, item));
+        kotak.appendChild(l);
+      });
+      var aksi = document.createElement("div");
+      aksi.className = "baris";
+      [["Naik", -1], ["Turun", 1]].forEach(function (x) {
+        var k = tombolKecil(x[0], x[0] + "kan " + d.satuan + " " + (i + 1));
+        k.disabled = i + x[1] < 0 || i + x[1] >= S[key].length;
+        k.addEventListener("click", function () {
+          var j = i + x[1], tmp = S[key][i];
+          S[key][i] = S[key][j]; S[key][j] = tmp;
+          gambarDaftar(key);
+        });
+        aksi.appendChild(k);
+      });
+      var h = tombolKecil("Hapus", "Hapus " + d.satuan + " " + (i + 1));
+      h.addEventListener("click", function () { S[key].splice(i, 1); gambarDaftar(key); });
+      aksi.appendChild(h);
+      kotak.appendChild(aksi);
+      w.appendChild(kotak);
+    });
+  }
+
+  // Memeriksa isi daftar sebelum disimpan; melempar pesan galat jika ada yang salah
+  function bersihkan(key) {
+    var d = DAFTAR[key], hasil = [];
+    S[key].forEach(function (item, i) {
+      var o = {}, nama = d.satuan + " " + (i + 1);
+      d.kolom.forEach(function (kol) {
+        var v = String(item[kol.k] || "").trim();
+        if (kol.wajib && !v) throw new Error(nama + ": kolom \"" + kol.label + "\" wajib diisi.");
+        if (v.length > kol.maks) throw new Error(nama + ": \"" + kol.label + "\" terlalu panjang (maksimal " + kol.maks + " karakter).");
+        if (kol.jenis === "url" && v && !/^https:\/\/\S+$/.test(v)) throw new Error(nama + ": tautan harus diawali https://");
+        if (kol.jenis === "label" && C.labelProyek.indexOf(v) < 0) throw new Error(nama + ": label tidak valid.");
+        if (kol.jenis === "gambar" && v && !C.gambarValid(v)) throw new Error(nama + ": gambar harus dipilih dari Media.");
+        o[kol.k] = v;
+      });
+      hasil.push(o);
+    });
+    return hasil;
+  }
+
+  function tombolBiasa(teks, kelas, tipe) {
+    var k = document.createElement("button");
+    k.type = tipe || "button"; k.className = kelas || ""; k.textContent = teks;
+    return k;
+  }
+  function buatPanel(key) {
+    var d = DAFTAR[key];
+    var det = document.createElement("details");
+    det.className = "panel";
+    var sum = document.createElement("summary");
+    sum.textContent = d.judul;
+    det.appendChild(sum);
+    var form = document.createElement("form");
+    form.id = "form-" + key;
+    det.appendChild(form);
+    if (d.catatan) {
+      var c = document.createElement("p");
+      c.className = "bantu"; c.textContent = d.catatan;
+      form.appendChild(c);
+    }
+    var ket = document.createElement("div");
+    form.appendChild(ket);
+    buatKolom(d.ket, ket);
+    var h = document.createElement("h3");
+    h.textContent = "Daftar " + d.satuan + " (maksimal " + d.maks + ")";
+    form.appendChild(h);
+    var ed = document.createElement("div");
+    ed.id = "editor-" + key;
+    form.appendChild(ed);
+    var baris = document.createElement("div");
+    baris.className = "baris";
+    var tambahBtn = tombolBiasa("Tambah " + d.satuan, "sekunder");
+    var resetBtn = tombolBiasa("Kembalikan bawaan", "sekunder");
+    baris.appendChild(tambahBtn);
+    baris.appendChild(tombolBiasa("Simpan " + d.satuan, "", "submit"));
+    baris.appendChild(resetBtn);
+    form.appendChild(baris);
+    $("panel-daftar").appendChild(det);
+
+    tambahBtn.addEventListener("click", function () {
+      if (S[key].length >= d.maks) { pesan("Maksimal " + d.maks + " " + d.satuan + ".", true); return; }
+      S[key].push(salin(d.baru));
+      gambarDaftar(key);
+    });
+    resetBtn.addEventListener("click", async function () {
+      if (!window.confirm("Kembalikan daftar " + d.satuan + " ke isi bawaan?")) return;
+      if (!(await hapus(key))) return;
+      S[key] = salin(d.bawaan);
+      gambarDaftar(key);
+      pesan("Daftar " + d.satuan + " dikembalikan ke bawaan.");
+    });
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      try {
+        var hasil = bersihkan(key);
+        bacaTeks([d.ket]);
+        if (await upsert("konten", S.konten) && await upsert(key, hasil)) pesan(TERSIMPAN);
+      } catch (err) {
+        pesan(err.message, true);
+      }
+    });
+  }
+  ["skill", "proyek", "layanan"].forEach(buatPanel);
+
   // ===== Media dan favicon =====
   var BUCKET = "media", BATAS = 50 * 1024 * 1024, BATAS_FAVICON = 1024 * 1024;
   var JENIS = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "application/pdf"];
@@ -295,6 +507,9 @@
     var h = await db.storage.from(BUCKET).list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
     if (h.error) { w.textContent = ""; pesan("Gagal memuat daftar media: " + terjemahkanGalat(h.error), true); return; }
     var files = h.data.filter(function (x) { return x.id; }); // folder (misalnya favicon) dilewati
+    S.mediaGambar = files.filter(function (x) { return x.metadata && /^image\//.test(x.metadata.mimetype || ""); })
+      .map(function (x) { return { nama: x.name, url: urlPublik(x.name) }; });
+    gambarDaftar("proyek"); // pilihan gambar proyek ikut diperbarui
     w.textContent = files.length ? "" : "Belum ada file.";
     files.forEach(function (f) {
       var jenis = (f.metadata && f.metadata.mimetype) || "";

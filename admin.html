@@ -39,6 +39,9 @@
     .media-aksi { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
     #favicon-sekarang { display: flex; align-items: center; gap: .75rem; margin: .75rem 0; }
     #favicon-sekarang img { width: 32px; height: 32px; }
+    .item-daftar { border: 1px solid var(--garis); border-radius: 6px; padding: .75rem; margin-top: .75rem; }
+    .item-daftar > strong { color: var(--biru); }
+    .item-daftar label { font-weight: 600; font-size: .95rem; margin: .6rem 0 .25rem; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0" defer></script>
   <script src="js/config.js" defer></script>
@@ -131,6 +134,8 @@
           </div>
         </form>
       </details>
+      <div id="panel-daftar"></div>
+
       <details class="panel">
         <summary>Media: gambar, video, dan file</summary>
         <p class="bantu">Jenis file: gambar (JPG, PNG, WebP, GIF), video MP4, dan PDF. Maksimal 50 MB per file (batas paket gratis). Untuk video panjang, lebih baik pakai tautan YouTube. File di sini bisa dibuka siapa saja yang punya tautannya, jadi jangan unggah dokumen pribadi atau rahasia.</p>

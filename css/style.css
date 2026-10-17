@@ -98,3 +98,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid #f2b705; outline-offs
 .hero.tengah .aksi { justify-content: center; }
 .hero.ukuran-kecil h1 { font-size: clamp(1.8rem, 6vw, 3rem); }
 .hero.ukuran-besar h1 { font-size: clamp(3rem, 12vw, 6rem); }
+
+/* Kartu proyek dengan gambar dan tautan */
+.kartu img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; margin-bottom: .9rem; background: var(--abu); }
+.tautan-proyek { display: inline-block; margin-top: .6rem; font-weight: 600; }

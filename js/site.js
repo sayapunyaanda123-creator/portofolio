@@ -60,6 +60,71 @@
     });
   }
 
+  function teks(v, maks) { return typeof v === "string" ? v.slice(0, maks) : ""; }
+  function tambah(induk, tag, kelas, isi) {
+    var e = document.createElement(tag);
+    if (kelas) e.className = kelas;
+    if (isi !== undefined) e.textContent = isi; // textContent: aman dari HTML/skrip
+    induk.appendChild(e);
+    return e;
+  }
+  function isiDaftar(id, daftar, buat) {
+    var el = document.getElementById(id);
+    if (!el || !Array.isArray(daftar)) return;
+    el.textContent = "";
+    daftar.slice(0, 12).forEach(function (x) {
+      var n = x && typeof x === "object" ? buat(x) : null;
+      if (n) el.appendChild(n);
+    });
+  }
+
+  // Daftar Skill, Proyek, dan Layanan dari pengaturan
+  function pasangDaftar(p) {
+    isiDaftar("daftar-skill", p.skill, function (x) {
+      var nama = teks(x.nama, 30);
+      if (!nama) return null;
+      var li = document.createElement("li");
+      tambah(li, "strong", null, nama);
+      var st = teks(x.status, 30);
+      if (st) tambah(li, "span", null, st);
+      return li;
+    });
+    isiDaftar("daftar-proyek", p.proyek, function (x) {
+      var judul = teks(x.judul, 60);
+      if (!judul) return null;
+      var kartu = document.createElement("article");
+      kartu.className = "kartu";
+      if (SITE_CONFIG.gambarValid(x.gambar)) {
+        var im = tambah(kartu, "img");
+        im.src = x.gambar; im.alt = judul; im.loading = "lazy";
+      }
+      tambah(kartu, "span", "label", SITE_CONFIG.labelProyek.indexOf(x.label) >= 0 ? x.label : "Proyek Latihan");
+      tambah(kartu, "h3", null, judul);
+      var d = teks(x.deskripsi, 250);
+      if (d) tambah(kartu, "p", null, d);
+      var st = teks(x.status, 40);
+      if (st) tambah(kartu, "p", "status", "Status: " + st);
+      if (/^https:\/\/\S+$/.test(x.tautan || "")) {
+        var a = tambah(kartu, "a", "tautan-proyek", "Buka proyek");
+        a.href = x.tautan; a.target = "_blank"; a.rel = "noopener";
+      }
+      return kartu;
+    });
+    isiDaftar("daftar-layanan", p.layanan, function (x) {
+      var judul = teks(x.judul, 50);
+      if (!judul) return null;
+      var li = document.createElement("li");
+      tambah(li, "strong", null, judul);
+      li.appendChild(document.createTextNode(teks(x.deskripsi, 200)));
+      return li;
+    });
+    // Catatan "semua proyek adalah latihan" tidak boleh tampil jika ada Proyek Klien
+    var punyaKlien = Array.isArray(p.proyek) && p.proyek.some(function (x) { return x && x.label === "Proyek Klien"; });
+    var catatanSendiri = p.konten && p.konten.ket_proyek;
+    var c = document.getElementById("ket-proyek");
+    if (punyaKlien && !catatanSendiri && c) c.textContent = "Setiap proyek diberi label sesuai jenisnya.";
+  }
+
   // Favicon: hanya file dari bucket "media" project ini yang diterima
   function pasangFavicon(f) {
     var u = f && f.url;
@@ -80,6 +145,7 @@
       hasil.data.forEach(function (b) { p[b.key] = b.value; });
       if (p.tema) SITE_CONFIG.pasangTema(p.tema);
       if (p.konten) pasangKonten(p.konten);
+      pasangDaftar(p);
       if (p.menu) pasangMenu(p.menu);
       if (p.favicon) pasangFavicon(p.favicon);
       if (p.tata) pasangTata(p.tata); // terakhir, agar menu ke bagian tersembunyi ikut hilang
