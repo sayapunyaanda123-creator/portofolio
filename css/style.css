@@ -2,7 +2,7 @@
       Ubah di sini, seluruh website ikut berubah. */
 :root {
   --biru: #14306b;
-  --biru-gelap: #0e2250;
+  --biru-gelap: color-mix(in srgb, var(--biru) 75%, black);
   --teks: #1b2433;
   --teks-pudar: #566074;
   --garis: #dce1ea;

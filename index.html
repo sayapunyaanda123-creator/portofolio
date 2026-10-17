@@ -6,6 +6,9 @@
   <title>Ahmad Dery SA | Aspiring Web Developer</title>
   <meta name="description" content="Portofolio Ahmad Dery SA, Aspiring Web Developer yang sedang belajar membuat website sederhana, responsif, dan rapi untuk UMKM dan usaha lokal.">
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/site.js" defer></script>
   <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -29,8 +32,8 @@
     <section class="hero" id="beranda">
       <div class="wadah">
         <h1>Ahmad Dery SA</h1>
-        <p class="peran">Aspiring Web Developer</p>
-        <p class="pengantar">Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal.</p>
+        <p class="peran" data-konten="hero_peran">Aspiring Web Developer</p>
+        <p class="pengantar" data-konten="hero_pengantar">Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal.</p>
         <div class="aksi">
           <a class="tombol tombol-terang" href="#kontak">Hubungi saya</a>
           <a class="tombol tombol-garis" href="#proyek">Lihat proyek</a>
@@ -42,8 +45,8 @@
       <div class="wadah sempit">
         <h2>Tentang saya</h2>
         <!-- GANTI: tulis dengan kata-katamu sendiri, tetap jujur -->
-        <p>Saya Dery, pemula di bidang web development. Saat ini saya belajar HTML, CSS, dan JavaScript dengan membuat proyek-proyek kecil.</p>
-        <p>Tujuan saya: mendapatkan pekerjaan di bidang web dan mengerjakan proyek freelance sederhana, sambil terus menambah kemampuan.</p>
+        <p data-konten="tentang_1">Saya Dery, pemula di bidang web development. Saat ini saya belajar HTML, CSS, dan JavaScript dengan membuat proyek-proyek kecil.</p>
+        <p data-konten="tentang_2">Tujuan saya: mendapatkan pekerjaan di bidang web dan mengerjakan proyek freelance sederhana, sambil terus menambah kemampuan.</p>
       </div>
     </section>
 
@@ -104,12 +107,12 @@
     <section class="bagian" id="kontak">
       <div class="wadah sempit">
         <h2>Kontak</h2>
-        <p>Punya proyek kecil atau lowongan yang cocok? Kirim pesan, saya akan membalas.</p>
+        <p data-konten="kontak_pengantar">Punya proyek kecil atau lowongan yang cocok? Kirim pesan, saya akan membalas.</p>
         <!-- GANTI: semua tautan di bawah sebelum website diterbitkan -->
         <ul class="daftar-kontak">
-          <li><a href="mailto:emailanda@example.com">emailanda@example.com</a></li>
-          <li><a href="https://github.com/USERNAME" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="https://www.linkedin.com/in/USERNAME" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="mailto:emailanda@example.com" data-konten="kontak_email" data-tipe="email">emailanda@example.com</a></li>
+          <li><a href="https://github.com/USERNAME" data-konten="kontak_github" data-tipe="tautan" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://www.linkedin.com/in/USERNAME" data-konten="kontak_linkedin" data-tipe="tautan" target="_blank" rel="noopener">LinkedIn</a></li>
         </ul>
       </div>
     </section>

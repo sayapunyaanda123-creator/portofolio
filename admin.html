@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    [hidden] { display: none !important; }
+    .admin { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+    .atas { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .panel { border: 1px solid var(--garis); border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem; }
+    label { display: block; font-weight: 600; margin: 1rem 0 .3rem; }
+    input, textarea, select { width: 100%; font: inherit; padding: .6rem .7rem; border: 1px solid var(--garis); border-radius: 6px; background: #fff; color: var(--teks); }
+    input[type=color] { width: 5rem; height: 2.6rem; padding: .2rem; }
+    textarea { min-height: 5.5rem; resize: vertical; }
+    .bantu { color: var(--teks-pudar); font-size: .9rem; margin: .25rem 0 0; }
+    button { font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; padding: .65rem 1.2rem; border: 2px solid var(--biru); background: var(--biru); color: #fff; }
+    button.sekunder { background: #fff; color: var(--biru); }
+    .baris { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    #status { margin-top: 1rem; font-weight: 600; min-height: 1.5em; }
+    .ok { color: #0a6b2d; } .galat { color: #b00020; }
+    #peringatan { color: #b00020; font-weight: 600; }
+    .contoh { margin-top: 1rem; padding: 1.2rem; border-radius: 8px; background: var(--biru); color: #fff; }
+    .contoh strong { font-size: 1.4rem; display: block; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/admin.js" defer></script>
+</head>
+<body>
+  <main class="admin">
+    <div class="atas">
+      <h1>Panel Admin</h1>
+      <div>
+        <a href="index.html">Lihat website</a>
+        <button id="keluar" class="sekunder" type="button" hidden>Keluar</button>
+      </div>
+    </div>
+    <p id="status" role="status"></p>
+
+    <section id="tampilan-login" class="panel">
+      <h2>Masuk</h2>
+      <form id="form-login">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="sandi">Kata sandi</label>
+        <input id="sandi" type="password" autocomplete="current-password" required>
+        <div class="baris"><button type="submit">Masuk</button></div>
+      </form>
+    </section>
+
+    <div id="tampilan-panel" hidden>
+      <section class="panel">
+        <h2>Konten</h2>
+        <p class="bantu">Kosongkan kolom untuk memakai teks bawaan website.</p>
+        <form id="form-konten">
+          <label for="hero_peran">Posisi (bagian atas)</label>
+          <input id="hero_peran" type="text" maxlength="80" placeholder="Aspiring Web Developer">
+          <label for="hero_pengantar">Kalimat pembuka</label>
+          <textarea id="hero_pengantar" maxlength="300" placeholder="Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal."></textarea>
+          <label for="tentang_1">Tentang saya, paragraf 1</label>
+          <textarea id="tentang_1" maxlength="500" placeholder="Saya Dery, pemula di bidang web development. ..."></textarea>
+          <label for="tentang_2">Tentang saya, paragraf 2</label>
+          <textarea id="tentang_2" maxlength="500" placeholder="Tujuan saya: mendapatkan pekerjaan di bidang web ..."></textarea>
+          <label for="kontak_pengantar">Kalimat di bagian Kontak</label>
+          <input id="kontak_pengantar" type="text" maxlength="200" placeholder="Punya proyek kecil atau lowongan yang cocok? ...">
+          <label for="kontak_email">Email</label>
+          <input id="kontak_email" type="email" maxlength="120" placeholder="emailanda@example.com">
+          <label for="kontak_github">Tautan GitHub</label>
+          <input id="kontak_github" type="url" pattern="https://.*" maxlength="200" placeholder="https://github.com/username">
+          <p class="bantu">Harus diawali https://</p>
+          <label for="kontak_linkedin">Tautan LinkedIn</label>
+          <input id="kontak_linkedin" type="url" pattern="https://.*" maxlength="200" placeholder="https://www.linkedin.com/in/username">
+          <div class="baris"><button type="submit">Simpan konten</button></div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Tampilan</h2>
+        <form id="form-tema">
+          <label for="warna">Warna tema</label>
+          <input id="warna" type="color" value="#14306b">
+          <p id="peringatan" role="alert"></p>
+          <label for="font">Jenis tulisan</label>
+          <select id="font"></select>
+          <div class="contoh"><strong>Ahmad Dery SA</strong>Pratinjau warna dan tulisan</div>
+          <div class="baris">
+            <button type="submit">Simpan tema</button>
+            <button id="reset-tema" class="sekunder" type="button">Kembalikan bawaan</button>
+          </div>
+        </form>
+      </section>
+      <p class="bantu">Unggah file dan favicon menyusul di Tahap B.</p>
+    </div>
+  </main>
+</body>
+</html>
