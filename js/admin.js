@@ -170,12 +170,15 @@
     S.menu = Array.isArray(p.menu) && p.menu.length
       ? p.menu.map(function (m) { return { label: String(m.label || ""), tujuan: String(m.tujuan || "") }; })
       : menuBawaan();
+    S.favicon = p.favicon || null;
     isiFormulir();
     gambarMenu();
     var t = p.tema || {};
     $("warna").value = /^#[0-9a-fA-F]{6}$/.test(t.warna) ? t.warna : C.warnaBawaan;
     $("font").value = Object.prototype.hasOwnProperty.call(C.fonts, t.font) ? t.font : "modern";
     pratinjau();
+    tampilFavicon();
+    muatMedia();
   }
 
   // ----- login dan keluar -----
@@ -262,5 +265,146 @@
     $("font").value = "modern";
     pratinjau();
     pesan("Tema dikembalikan ke bawaan.");
+  });
+  // ===== Media dan favicon =====
+  var BUCKET = "media", BATAS = 50 * 1024 * 1024, BATAS_FAVICON = 1024 * 1024;
+  var JENIS = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "application/pdf"];
+  var JENIS_FAVICON = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/x-icon", "image/vnd.microsoft.icon"];
+  var AWAL_URL = C.url + "/storage/v1/object/public/" + BUCKET + "/";
+
+  function namaAman(nama) {
+    return nama.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(-80) || "file";
+  }
+  function urlPublik(path) { return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl; }
+  function ukuranTeks(b) { return b < 1048576 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toFixed(1) + " MB"; }
+  function periksa(file, jenis, batas) {
+    if (jenis.indexOf(file.type) < 0) return file.name + ": jenis file tidak diizinkan.";
+    if (file.size > batas) return file.name + ": ukuran " + ukuranTeks(file.size) + " melebihi batas " + ukuranTeks(batas) + ".";
+    return "";
+  }
+  async function kirim(file, awalan) {
+    var path = awalan + Date.now() + "-" + namaAman(file.name);
+    var h = await db.storage.from(BUCKET).upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+    if (h.error) throw h.error;
+    return path;
+  }
+
+  async function muatMedia() {
+    var w = $("daftar-media");
+    w.textContent = "Memuat daftar...";
+    var h = await db.storage.from(BUCKET).list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+    if (h.error) { w.textContent = ""; pesan("Gagal memuat daftar media: " + terjemahkanGalat(h.error), true); return; }
+    var files = h.data.filter(function (x) { return x.id; }); // folder (misalnya favicon) dilewati
+    w.textContent = files.length ? "" : "Belum ada file.";
+    files.forEach(function (f) {
+      var jenis = (f.metadata && f.metadata.mimetype) || "";
+      var url = urlPublik(f.name);
+      var item = document.createElement("div");
+      item.className = "media-item";
+      if (jenis.indexOf("image/") === 0) {
+        var img = document.createElement("img");
+        img.src = url; img.alt = f.name; img.loading = "lazy";
+        item.appendChild(img);
+      } else {
+        var ik = document.createElement("div");
+        ik.className = "media-ikon";
+        ik.textContent = jenis === "application/pdf" ? "PDF" : "VIDEO";
+        item.appendChild(ik);
+      }
+      var info = document.createElement("div");
+      var nama = document.createElement("div");
+      nama.className = "media-nama";
+      nama.textContent = f.name + (f.metadata && f.metadata.size ? " (" + ukuranTeks(f.metadata.size) + ")" : "");
+      var aksi = document.createElement("div");
+      aksi.className = "media-aksi";
+      var salin = tombolKecil("Salin tautan", "Salin tautan " + f.name);
+      salin.addEventListener("click", async function () {
+        try { await navigator.clipboard.writeText(url); pesan("Tautan disalin."); }
+        catch (e) { window.prompt("Salin tautan ini:", url); }
+      });
+      var buka = document.createElement("a");
+      buka.href = url; buka.target = "_blank"; buka.rel = "noopener"; buka.textContent = "Buka";
+      var del = tombolKecil("Hapus", "Hapus " + f.name);
+      del.addEventListener("click", async function () {
+        if (!window.confirm("Hapus file ini? Tautannya akan berhenti berfungsi.")) return;
+        var r = await db.storage.from(BUCKET).remove([f.name]);
+        if (r.error) { pesan("Gagal menghapus: " + terjemahkanGalat(r.error), true); return; }
+        pesan("File dihapus.");
+        muatMedia();
+      });
+      aksi.appendChild(salin); aksi.appendChild(buka); aksi.appendChild(del);
+      info.appendChild(nama); info.appendChild(aksi);
+      item.appendChild(info);
+      w.appendChild(item);
+    });
+  }
+  $("muat-media").addEventListener("click", muatMedia);
+
+  $("unggah").addEventListener("click", async function () {
+    var daftar = Array.prototype.slice.call($("berkas").files);
+    if (!daftar.length) { pesan("Pilih file dulu.", true); return; }
+    for (var i = 0; i < daftar.length; i++) {
+      var salah = periksa(daftar[i], JENIS, BATAS);
+      if (salah) { pesan(salah, true); return; }
+    }
+    $("unggah").disabled = true;
+    try {
+      for (var j = 0; j < daftar.length; j++) {
+        pesan("Mengunggah " + (j + 1) + " dari " + daftar.length + "...");
+        await kirim(daftar[j], "");
+      }
+      $("berkas").value = "";
+      pesan("Selesai mengunggah " + daftar.length + " file.");
+      muatMedia();
+    } catch (e) {
+      pesan("Gagal mengunggah: " + terjemahkanGalat(e), true);
+    }
+    $("unggah").disabled = false;
+  });
+
+  // ----- favicon -----
+  function tampilFavicon() {
+    var w = $("favicon-sekarang");
+    w.textContent = "";
+    if (S.favicon && S.favicon.url && S.favicon.url.indexOf(AWAL_URL) === 0) {
+      var img = document.createElement("img");
+      img.src = S.favicon.url; img.alt = "Favicon saat ini";
+      w.appendChild(img);
+      w.appendChild(document.createTextNode("Favicon saat ini"));
+    } else {
+      w.textContent = "Memakai favicon bawaan.";
+    }
+  }
+  async function hapusBerkasLama() {
+    if (S.favicon && S.favicon.path) await db.storage.from(BUCKET).remove([S.favicon.path]);
+  }
+  $("pasang-favicon").addEventListener("click", async function () {
+    var f = $("berkas-favicon").files[0];
+    if (!f) { pesan("Pilih gambar dulu.", true); return; }
+    var salah = periksa(f, JENIS_FAVICON, BATAS_FAVICON);
+    if (salah) { pesan(salah, true); return; }
+    $("pasang-favicon").disabled = true;
+    try {
+      pesan("Mengunggah favicon...");
+      var path = await kirim(f, "favicon/");
+      var baru = { url: urlPublik(path), path: path };
+      if (await upsert("favicon", baru)) {
+        await hapusBerkasLama();
+        S.favicon = baru;
+        tampilFavicon();
+        $("berkas-favicon").value = "";
+        pesan("Favicon dipasang. Muat ulang website; jika belum berubah, tutup lalu buka lagi tab-nya.");
+      }
+    } catch (e) {
+      pesan("Gagal mengunggah favicon: " + terjemahkanGalat(e), true);
+    }
+    $("pasang-favicon").disabled = false;
+  });
+  $("reset-favicon").addEventListener("click", async function () {
+    if (!(await hapus("favicon"))) return;
+    await hapusBerkasLama();
+    S.favicon = null;
+    tampilFavicon();
+    pesan("Favicon dikembalikan ke bawaan.");
   });
 })();

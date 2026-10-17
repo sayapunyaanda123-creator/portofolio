@@ -30,6 +30,15 @@
     #peringatan { color: #b00020; font-weight: 600; }
     .contoh { margin-top: 1rem; padding: 1.2rem; border-radius: 8px; background: var(--biru); color: #fff; }
     .contoh strong { font-size: 1.4rem; display: block; }
+    .media-grid { display: grid; gap: .75rem; margin-top: 1rem; }
+    .media-item { display: grid; grid-template-columns: 72px 1fr; gap: .75rem; align-items: center; border: 1px solid var(--garis); border-radius: 6px; padding: .6rem; }
+    .media-item img, .media-ikon { width: 72px; height: 72px; border-radius: 4px; background: var(--abu); }
+    .media-item img { object-fit: cover; }
+    .media-ikon { display: grid; place-items: center; font-weight: 700; color: var(--biru); }
+    .media-nama { word-break: break-all; font-size: .9rem; }
+    .media-aksi { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+    #favicon-sekarang { display: flex; align-items: center; gap: .75rem; margin: .75rem 0; }
+    #favicon-sekarang img { width: 32px; height: 32px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0" defer></script>
   <script src="js/config.js" defer></script>
@@ -122,7 +131,29 @@
           </div>
         </form>
       </details>
-      <p class="bantu">Unggah file dan favicon menyusul di Tahap B.</p>
+      <details class="panel">
+        <summary>Media: gambar, video, dan file</summary>
+        <p class="bantu">Jenis file: gambar (JPG, PNG, WebP, GIF), video MP4, dan PDF. Maksimal 50 MB per file (batas paket gratis). Untuk video panjang, lebih baik pakai tautan YouTube. File di sini bisa dibuka siapa saja yang punya tautannya, jadi jangan unggah dokumen pribadi atau rahasia.</p>
+        <label for="berkas">Pilih file</label>
+        <input id="berkas" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,application/pdf">
+        <div class="baris">
+          <button id="unggah" type="button">Unggah</button>
+          <button id="muat-media" class="sekunder" type="button">Muat ulang daftar</button>
+        </div>
+        <div id="daftar-media" class="media-grid"></div>
+      </details>
+
+      <details class="panel">
+        <summary>Favicon</summary>
+        <p class="bantu">Ikon kecil di tab browser. Pakai gambar persegi (PNG, sebaiknya 512 x 512 piksel), maksimal 1 MB.</p>
+        <div id="favicon-sekarang"></div>
+        <label for="berkas-favicon">Pilih gambar</label>
+        <input id="berkas-favicon" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon">
+        <div class="baris">
+          <button id="pasang-favicon" type="button">Unggah dan pasang</button>
+          <button id="reset-favicon" class="sekunder" type="button">Kembalikan favicon bawaan</button>
+        </div>
+      </details>
     </div>
   </main>
 </body>

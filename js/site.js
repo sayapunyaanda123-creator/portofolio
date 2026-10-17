@@ -60,6 +60,16 @@
     });
   }
 
+  // Favicon: hanya file dari bucket "media" project ini yang diterima
+  function pasangFavicon(f) {
+    var u = f && f.url;
+    if (typeof u !== "string" || u.indexOf(SITE_CONFIG.url + "/storage/v1/object/public/media/") !== 0) return;
+    var l = document.querySelector('link[rel~="icon"]');
+    if (!l) { l = document.createElement("link"); l.rel = "icon"; document.head.appendChild(l); }
+    l.removeAttribute("type");
+    l.href = u;
+  }
+
   async function muat() {
     try {
       if (!window.supabase || !window.SITE_CONFIG) return;
@@ -71,6 +81,7 @@
       if (p.tema) SITE_CONFIG.pasangTema(p.tema);
       if (p.konten) pasangKonten(p.konten);
       if (p.menu) pasangMenu(p.menu);
+      if (p.favicon) pasangFavicon(p.favicon);
       if (p.tata) pasangTata(p.tata); // terakhir, agar menu ke bagian tersembunyi ikut hilang
     } catch (e) {
       console.warn("Pengaturan online tidak dimuat, memakai isi bawaan.", e);
