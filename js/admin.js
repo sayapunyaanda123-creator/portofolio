@@ -2,19 +2,39 @@
   var C = window.SITE_CONFIG;
   var db = window.supabase.createClient(C.url, C.key);
   var $ = function (id) { return document.getElementById(id); };
-  var FIELDS = ["hero_peran", "hero_pengantar", "tentang_1", "tentang_2",
-                "kontak_pengantar", "kontak_email", "kontak_github", "kontak_linkedin"];
+  // S menyimpan data terakhir dari database: teks (konten), tata letak (tata), dan daftar menu
+  var S = { konten: {}, tata: {}, menu: [] };
 
-  function pesan(teks, galat) {
-    var s = $("status");
-    s.textContent = teks;
-    s.className = galat ? "galat" : "ok";
-  }
+  var BAGIAN = [["tentang", "Tentang saya"], ["skill", "Skill"], ["proyek", "Proyek"], ["layanan", "Layanan"], ["kontak", "Kontak"]];
+  var MENU_BAWAAN = [["tentang", "Tentang"], ["skill", "Skill"], ["proyek", "Proyek"], ["layanan", "Layanan"], ["kontak", "Kontak"]];
+  // Kolom: [id, label, jenis, batas karakter, contoh isi bawaan]
+  var TEKS = {
+    hero: [
+      ["hero_nama", "Nama (judul besar)", "text", 60, "Ahmad Dery SA"],
+      ["hero_peran", "Posisi", "text", 80, "Aspiring Web Developer"],
+      ["hero_pengantar", "Kalimat pembuka", "area", 300, "Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal."],
+      ["hero_tombol1_teks", "Tombol 1: tulisan", "text", 30, "Hubungi saya"],
+      ["hero_tombol1_tautan", "Tombol 1: tujuan", "tujuan", 200, "#kontak"],
+      ["hero_tombol2_teks", "Tombol 2: tulisan", "text", 30, "Lihat proyek"],
+      ["hero_tombol2_tautan", "Tombol 2: tujuan", "tujuan", 200, "#proyek"]
+    ],
+    logo: [["logo_teks", "Teks logo (kiri atas)", "text", 30, "Dery SA"]],
+    judul: BAGIAN.map(function (b) { return ["judul_" + b[0], "Judul bagian " + b[1], "text", 40, b[1]]; }),
+    isi: [
+      ["tentang_1", "Tentang saya, paragraf 1", "area", 500, "Saya Dery, pemula di bidang web development. ..."],
+      ["tentang_2", "Tentang saya, paragraf 2", "area", 500, "Tujuan saya: mendapatkan pekerjaan di bidang web ..."],
+      ["kontak_pengantar", "Kalimat di bagian Kontak", "text", 200, "Punya proyek kecil atau lowongan yang cocok? ..."],
+      ["kontak_email", "Email", "email", 120, "emailanda@example.com"],
+      ["kontak_github", "Tautan GitHub (https://)", "url", 200, "https://github.com/username"],
+      ["kontak_linkedin", "Tautan LinkedIn (https://)", "url", 200, "https://www.linkedin.com/in/username"]
+    ]
+  };
+
+  function pesan(teks, galat) { var s = $("status"); s.textContent = teks; s.className = galat ? "galat" : "ok"; }
   function terjemahkanGalat(e) {
-    if (/row-level security/i.test(e.message)) {
-      return "Ditolak oleh aturan keamanan. Pastikan email di supabase-setup.sql sama persis dengan email yang dipakai login.";
-    }
-    return e.message;
+    return /row-level security/i.test(e.message)
+      ? "Ditolak oleh aturan keamanan. Pastikan email di supabase-setup.sql sama persis dengan email yang dipakai login."
+      : e.message;
   }
   function tampil(login) {
     $("tampilan-login").hidden = !login;
@@ -22,40 +42,137 @@
     $("keluar").hidden = login;
   }
 
-  // ----- isi pilihan font -----
+  // ----- membuat kolom dari daftar -----
+  function buatKolom(f, wadah) {
+    var l = document.createElement("label");
+    l.htmlFor = f[0]; l.textContent = f[1];
+    var el = document.createElement(f[2] === "area" ? "textarea" : "input");
+    el.id = f[0]; el.maxLength = f[3]; el.placeholder = f[4];
+    if (f[2] === "email") el.type = "email";
+    else if (f[2] === "url") { el.type = "url"; el.pattern = "https://.*"; }
+    else if (f[2] !== "area") el.type = "text";
+    if (f[2] === "tujuan") el.setAttribute("list", "daftar-tujuan");
+    wadah.appendChild(l); wadah.appendChild(el);
+  }
+  TEKS.hero.forEach(function (f) { buatKolom(f, $("kolom-hero")); });
+  TEKS.logo.forEach(function (f) { buatKolom(f, $("kolom-logo")); });
+  BAGIAN.forEach(function (b, i) {
+    var cek = document.createElement("label");
+    cek.className = "cek";
+    var c = document.createElement("input");
+    c.type = "checkbox"; c.id = "tampil_" + b[0];
+    cek.appendChild(c);
+    cek.appendChild(document.createTextNode(" Tampilkan bagian " + b[1]));
+    $("kolom-bagian").appendChild(cek);
+    buatKolom(TEKS.judul[i], $("kolom-bagian"));
+  });
+  TEKS.isi.forEach(function (f) { buatKolom(f, $("kolom-bagian")); });
+
   Object.keys(C.fonts).forEach(function (k) {
     var o = document.createElement("option");
-    o.value = k;
-    o.textContent = C.fonts[k].nama;
+    o.value = k; o.textContent = C.fonts[k].nama;
     $("font").appendChild(o);
   });
 
-  function pratinjau() {
-    var tema = { warna: $("warna").value, font: $("font").value };
-    C.pasangTema(tema);
-    var rasio = C.kontrasDenganPutih(tema.warna);
-    $("peringatan").textContent = rasio < 4.5
-      ? "Warna ini terlalu terang: teks putih di bagian atas website akan sulit dibaca. Pilih warna yang lebih gelap."
-      : "";
+  // ----- membaca dan menyimpan -----
+  function bacaTeks(daftar) {
+    daftar.forEach(function (f) {
+      var v = $(f[0]).value.trim();
+      if (v) S.konten[f[0]] = v; else delete S.konten[f[0]];
+    });
   }
-  $("warna").addEventListener("input", pratinjau);
-  $("font").addEventListener("change", pratinjau);
-
-  async function simpan(key, value) {
-    var h = await db.from("site_settings").upsert({ key: key, value: value, updated_at: new Date().toISOString() });
-    if (h.error) { pesan("Gagal menyimpan: " + terjemahkanGalat(h.error), true); return false; }
-    pesan("Tersimpan. Muat ulang website untuk melihat hasilnya.");
+  function cekTujuan(daftar) {
+    for (var i = 0; i < daftar.length; i++) {
+      var f = daftar[i], v = $(f[0]).value.trim();
+      if (f[2] === "tujuan" && v && !C.tujuanValid(v)) {
+        pesan(f[1] + " harus berupa #bagian (contoh #kontak) atau tautan yang diawali https://", true);
+        $(f[0]).focus();
+        return false;
+      }
+    }
     return true;
   }
+  async function upsert(key, value) {
+    var h = await db.from("site_settings").upsert({ key: key, value: value, updated_at: new Date().toISOString() });
+    if (h.error) { pesan("Gagal menyimpan: " + terjemahkanGalat(h.error), true); return false; }
+    return true;
+  }
+  async function hapus(key) {
+    var h = await db.from("site_settings").delete().eq("key", key);
+    if (h.error) { pesan("Gagal mengembalikan: " + terjemahkanGalat(h.error), true); return false; }
+    return true;
+  }
+  var TERSIMPAN = "Tersimpan. Muat ulang website untuk melihat hasilnya.";
+
+  // ----- menampilkan data ke formulir -----
+  function isiFormulir() {
+    [TEKS.hero, TEKS.logo, TEKS.judul, TEKS.isi].forEach(function (d) {
+      d.forEach(function (f) { $(f[0]).value = S.konten[f[0]] || ""; });
+    });
+    $("rata").value = S.tata.rata === "tengah" ? "tengah" : "kiri";
+    $("ukuran").value = S.tata.ukuran === "kecil" || S.tata.ukuran === "besar" ? S.tata.ukuran : "sedang";
+    $("tombol1").checked = S.tata.tombol1 !== false;
+    $("tombol2").checked = S.tata.tombol2 !== false;
+    BAGIAN.forEach(function (b) { $("tampil_" + b[0]).checked = (S.tata.bagian || {})[b[0]] !== false; });
+  }
+  function menuBawaan() {
+    return MENU_BAWAAN.map(function (m) { return { label: S.konten["menu_" + m[0]] || m[1], tujuan: "#" + m[0] }; });
+  }
+
+  // ----- daftar menu: tambah, ubah, urutkan, hapus -----
+  function tombolKecil(teks, label) {
+    var k = document.createElement("button");
+    k.type = "button"; k.className = "sekunder kecil"; k.textContent = teks; k.setAttribute("aria-label", label);
+    return k;
+  }
+  function gambarMenu() {
+    var w = $("daftar-menu");
+    w.textContent = "";
+    S.menu.forEach(function (m, i) {
+      var baris = document.createElement("div");
+      baris.className = "menu-baris";
+      var a = document.createElement("input");
+      a.type = "text"; a.maxLength = 20; a.value = m.label; a.setAttribute("aria-label", "Tulisan menu " + (i + 1));
+      a.addEventListener("input", function () { m.label = a.value; });
+      var t = document.createElement("input");
+      t.type = "text"; t.value = m.tujuan; t.setAttribute("list", "daftar-tujuan"); t.setAttribute("aria-label", "Tujuan menu " + (i + 1));
+      t.addEventListener("input", function () { m.tujuan = t.value; });
+      baris.appendChild(a); baris.appendChild(t);
+      [["Naik", -1], ["Turun", 1]].forEach(function (x) {
+        var k = tombolKecil(x[0], x[0] + "kan menu " + (i + 1));
+        k.disabled = i + x[1] < 0 || i + x[1] >= S.menu.length;
+        k.addEventListener("click", function () {
+          var j = i + x[1], tmp = S.menu[i];
+          S.menu[i] = S.menu[j]; S.menu[j] = tmp;
+          gambarMenu();
+        });
+        baris.appendChild(k);
+      });
+      var h = tombolKecil("Hapus", "Hapus menu " + (i + 1));
+      h.addEventListener("click", function () { S.menu.splice(i, 1); gambarMenu(); });
+      baris.appendChild(h);
+      w.appendChild(baris);
+    });
+  }
+  $("tambah-menu").addEventListener("click", function () {
+    if (S.menu.length >= 8) { pesan("Maksimal 8 menu.", true); return; }
+    S.menu.push({ label: "Menu baru", tujuan: "#beranda" });
+    gambarMenu();
+  });
 
   async function muatPengaturan() {
     var h = await db.from("site_settings").select("key,value");
     if (h.error) { pesan("Gagal memuat pengaturan: " + terjemahkanGalat(h.error), true); return; }
-    var peta = {};
-    h.data.forEach(function (b) { peta[b.key] = b.value; });
-    var k = peta.konten || {};
-    FIELDS.forEach(function (id) { $(id).value = k[id] || ""; });
-    var t = peta.tema || {};
+    var p = {};
+    h.data.forEach(function (b) { p[b.key] = b.value; });
+    S.konten = p.konten || {};
+    S.tata = p.tata || {};
+    S.menu = Array.isArray(p.menu) && p.menu.length
+      ? p.menu.map(function (m) { return { label: String(m.label || ""), tujuan: String(m.tujuan || "") }; })
+      : menuBawaan();
+    isiFormulir();
+    gambarMenu();
+    var t = p.tema || {};
     $("warna").value = /^#[0-9a-fA-F]{6}$/.test(t.warna) ? t.warna : C.warnaBawaan;
     $("font").value = Object.prototype.hasOwnProperty.call(C.fonts, t.font) ? t.font : "modern";
     pratinjau();
@@ -69,33 +186,78 @@
     else { $("sandi").value = ""; pesan(""); }
   });
   $("keluar").addEventListener("click", function () { db.auth.signOut(); });
-
-  // Dipanggil saat halaman dibuka dan setiap status login berubah.
-  // setTimeout dipakai agar permintaan data tidak berjalan di dalam callback ini (praktik yang disarankan).
+  // setTimeout: permintaan data tidak dijalankan langsung di dalam callback ini (praktik yang disarankan)
   db.auth.onAuthStateChange(function (event, session) {
-    if (session) { tampil(false); setTimeout(muatPengaturan, 0); }
-    else { tampil(true); }
+    if (session) { tampil(false); setTimeout(muatPengaturan, 0); } else { tampil(true); }
   });
 
-  // ----- simpan konten -----
-  $("form-konten").addEventListener("submit", async function (e) {
+  // ----- simpan: bagian utama -----
+  $("form-hero").addEventListener("submit", async function (e) {
     e.preventDefault();
-    var nilai = {};
-    FIELDS.forEach(function (id) {
-      var v = $(id).value.trim();
-      if (v) nilai[id] = v; // kosong = pakai teks bawaan di website
-    });
-    await simpan("konten", nilai);
+    if (!cekTujuan(TEKS.hero)) return;
+    bacaTeks(TEKS.hero);
+    S.tata.rata = $("rata").value;
+    S.tata.ukuran = $("ukuran").value;
+    S.tata.tombol1 = $("tombol1").checked;
+    S.tata.tombol2 = $("tombol2").checked;
+    if (await upsert("konten", S.konten) && await upsert("tata", S.tata)) pesan(TERSIMPAN);
+  });
+  $("reset-tata").addEventListener("click", async function () {
+    if (!(await hapus("tata"))) return;
+    S.tata = {};
+    isiFormulir();
+    pesan("Tata letak dan bagian dikembalikan ke bawaan.");
   });
 
-  // ----- simpan tema -----
+  // ----- simpan: menu dan logo -----
+  $("form-menu").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (!S.menu.length) { pesan("Minimal harus ada 1 menu.", true); return; }
+    var bersih = [];
+    for (var i = 0; i < S.menu.length; i++) {
+      var l = S.menu[i].label.trim(), t = S.menu[i].tujuan.trim();
+      if (!l || !C.tujuanValid(t)) {
+        pesan("Menu " + (i + 1) + ": tulisan wajib diisi, dan tujuan harus #bagian atau tautan https://", true);
+        return;
+      }
+      bersih.push({ label: l, tujuan: t });
+    }
+    bacaTeks(TEKS.logo);
+    if (await upsert("konten", S.konten) && await upsert("menu", bersih)) pesan(TERSIMPAN);
+  });
+  $("reset-menu").addEventListener("click", async function () {
+    if (!(await hapus("menu"))) return;
+    S.menu = menuBawaan();
+    gambarMenu();
+    pesan("Menu dikembalikan ke bawaan.");
+  });
+
+  // ----- simpan: bagian halaman -----
+  $("form-bagian").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    bacaTeks(TEKS.judul);
+    bacaTeks(TEKS.isi);
+    S.tata.bagian = {};
+    BAGIAN.forEach(function (b) { S.tata.bagian[b[0]] = $("tampil_" + b[0]).checked; });
+    if (await upsert("konten", S.konten) && await upsert("tata", S.tata)) pesan(TERSIMPAN);
+  });
+
+  // ----- warna dan font -----
+  function pratinjau() {
+    var tema = { warna: $("warna").value, font: $("font").value };
+    C.pasangTema(tema);
+    $("peringatan").textContent = C.kontrasDenganPutih(tema.warna) < 4.5
+      ? "Warna ini terlalu terang: teks putih di bagian atas website akan sulit dibaca. Pilih warna yang lebih gelap."
+      : "";
+  }
+  $("warna").addEventListener("input", pratinjau);
+  $("font").addEventListener("change", pratinjau);
   $("form-tema").addEventListener("submit", async function (e) {
     e.preventDefault();
-    await simpan("tema", { warna: $("warna").value, font: $("font").value });
+    if (await upsert("tema", { warna: $("warna").value, font: $("font").value })) pesan(TERSIMPAN);
   });
   $("reset-tema").addEventListener("click", async function () {
-    var h = await db.from("site_settings").delete().eq("key", "tema");
-    if (h.error) { pesan("Gagal mengembalikan: " + terjemahkanGalat(h.error), true); return; }
+    if (!(await hapus("tema"))) return;
     $("warna").value = C.warnaBawaan;
     $("font").value = "modern";
     pratinjau();

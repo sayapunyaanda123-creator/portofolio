@@ -16,14 +16,14 @@
 
   <header class="header">
     <div class="wadah header-isi">
-      <a class="logo" href="#beranda">Dery SA</a>
+      <a class="logo" href="#beranda" data-konten="logo_teks">Dery SA</a>
       <button class="tombol-menu" id="tombol-menu" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
       <nav class="menu" id="menu" aria-label="Menu utama">
-        <a href="#tentang">Tentang</a>
-        <a href="#skill">Skill</a>
-        <a href="#proyek">Proyek</a>
-        <a href="#layanan">Layanan</a>
-        <a href="#kontak">Kontak</a>
+        <a href="#tentang" data-konten="menu_tentang">Tentang</a>
+        <a href="#skill" data-konten="menu_skill">Skill</a>
+        <a href="#proyek" data-konten="menu_proyek">Proyek</a>
+        <a href="#layanan" data-konten="menu_layanan">Layanan</a>
+        <a href="#kontak" data-konten="menu_kontak">Kontak</a>
       </nav>
     </div>
   </header>
@@ -31,19 +31,19 @@
   <main id="konten">
     <section class="hero" id="beranda">
       <div class="wadah">
-        <h1>Ahmad Dery SA</h1>
+        <h1 data-konten="hero_nama">Ahmad Dery SA</h1>
         <p class="peran" data-konten="hero_peran">Aspiring Web Developer</p>
         <p class="pengantar" data-konten="hero_pengantar">Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal.</p>
         <div class="aksi">
-          <a class="tombol tombol-terang" href="#kontak">Hubungi saya</a>
-          <a class="tombol tombol-garis" href="#proyek">Lihat proyek</a>
+          <a class="tombol tombol-terang" href="#kontak" data-konten="hero_tombol1_teks" data-tautan="hero_tombol1_tautan">Hubungi saya</a>
+          <a class="tombol tombol-garis" href="#proyek" data-konten="hero_tombol2_teks" data-tautan="hero_tombol2_tautan">Lihat proyek</a>
         </div>
       </div>
     </section>
 
     <section class="bagian" id="tentang">
       <div class="wadah sempit">
-        <h2>Tentang saya</h2>
+        <h2 data-konten="judul_tentang">Tentang saya</h2>
         <!-- GANTI: tulis dengan kata-katamu sendiri, tetap jujur -->
         <p data-konten="tentang_1">Saya Dery, pemula di bidang web development. Saat ini saya belajar HTML, CSS, dan JavaScript dengan membuat proyek-proyek kecil.</p>
         <p data-konten="tentang_2">Tujuan saya: mendapatkan pekerjaan di bidang web dan mengerjakan proyek freelance sederhana, sambil terus menambah kemampuan.</p>
@@ -52,7 +52,7 @@
 
     <section class="bagian abu" id="skill">
       <div class="wadah">
-        <h2>Skill</h2>
+        <h2 data-konten="judul_skill">Skill</h2>
         <p class="ket">Teknologi yang sedang saya pelajari dan pakai di proyek latihan.</p>
         <!-- GANTI: ubah status sesuai kemampuanmu yang sebenarnya -->
         <ul class="daftar-skill">
@@ -67,7 +67,7 @@
 
     <section class="bagian" id="proyek">
       <div class="wadah">
-        <h2>Proyek</h2>
+        <h2 data-konten="judul_proyek">Proyek</h2>
         <p class="ket">Semua proyek di bawah adalah latihan pribadi, bukan pekerjaan untuk klien.</p>
         <div class="kartu-grid">
           <article class="kartu">
@@ -94,7 +94,7 @@
 
     <section class="bagian abu" id="layanan">
       <div class="wadah">
-        <h2>Layanan</h2>
+        <h2 data-konten="judul_layanan">Layanan</h2>
         <p class="ket">Proyek kecil yang saat ini bisa saya kerjakan sambil terus belajar.</p>
         <ul class="daftar-layanan">
           <li><strong>Landing page sederhana</strong>Satu halaman untuk mempromosikan jasa atau produk.</li>
@@ -106,7 +106,7 @@
 
     <section class="bagian" id="kontak">
       <div class="wadah sempit">
-        <h2>Kontak</h2>
+        <h2 data-konten="judul_kontak">Kontak</h2>
         <p data-konten="kontak_pengantar">Punya proyek kecil atau lowongan yang cocok? Kirim pesan, saya akan membalas.</p>
         <!-- GANTI: semua tautan di bawah sebelum website diterbitkan -->
         <ul class="daftar-kontak">

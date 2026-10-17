@@ -7,12 +7,13 @@ tombol.addEventListener("click", function () {
   tombol.setAttribute("aria-expanded", terbuka);
 });
 
-// Tutup menu otomatis setelah salah satu tautan diklik
-menu.querySelectorAll("a").forEach(function (tautan) {
-  tautan.addEventListener("click", function () {
+// Tutup menu setelah salah satu tautan diklik.
+// Satu pendengar di elemen menu cukup, jadi tetap berfungsi walau daftar menu diganti dari panel admin.
+menu.addEventListener("click", function (e) {
+  if (e.target.closest("a")) {
     menu.classList.remove("terbuka");
     tombol.setAttribute("aria-expanded", "false");
-  });
+  }
 });
 
 // Isi tahun di footer otomatis

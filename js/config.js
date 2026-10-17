@@ -11,6 +11,10 @@ window.SITE_CONFIG = {
     netral: { nama: "Netral (Arial)", css: 'Arial, Helvetica, sans-serif' },
     mono: { nama: "Teknis (monospace)", css: 'ui-monospace, Consolas, "Courier New", monospace' }
   },
+  // Tujuan tautan yang diizinkan: bagian halaman (#tentang, dst) atau tautan https://
+  tujuanValid: function (t) {
+    return typeof t === "string" && /^(#(beranda|tentang|skill|proyek|layanan|kontak)|https:\/\/\S+)$/.test(t);
+  },
   // Menerapkan warna dan font ke halaman. Nilai yang tidak valid diganti nilai bawaan.
   pasangTema: function (tema) {
     var root = document.documentElement;

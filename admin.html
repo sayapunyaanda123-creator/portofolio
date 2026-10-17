@@ -7,19 +7,25 @@
   <title>Panel Admin</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    [hidden] { display: none !important; }
-    .admin { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+    .admin { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
     .atas { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-    .panel { border: 1px solid var(--garis); border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem; }
+    .panel { border: 1px solid var(--garis); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem; }
+    summary { cursor: pointer; font-size: 1.2rem; font-weight: 700; color: var(--biru); }
     label { display: block; font-weight: 600; margin: 1rem 0 .3rem; }
+    .cek { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+    .cek input { width: auto; }
     input, textarea, select { width: 100%; font: inherit; padding: .6rem .7rem; border: 1px solid var(--garis); border-radius: 6px; background: #fff; color: var(--teks); }
     input[type=color] { width: 5rem; height: 2.6rem; padding: .2rem; }
     textarea { min-height: 5.5rem; resize: vertical; }
     .bantu { color: var(--teks-pudar); font-size: .9rem; margin: .25rem 0 0; }
     button { font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; padding: .65rem 1.2rem; border: 2px solid var(--biru); background: var(--biru); color: #fff; }
     button.sekunder { background: #fff; color: var(--biru); }
+    button.kecil { padding: .4rem .7rem; }
+    button:disabled { opacity: .4; cursor: default; }
     .baris { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
-    #status { margin-top: 1rem; font-weight: 600; min-height: 1.5em; }
+    .menu-baris { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: .6rem; padding: .6rem; border: 1px solid var(--garis); border-radius: 6px; }
+    .menu-baris button { padding: .35rem .6rem; }
+    #status { position: sticky; top: 0; z-index: 5; background: #fff; padding: .5rem 0; font-weight: 600; min-height: 2em; }
     .ok { color: #0a6b2d; } .galat { color: #b00020; }
     #peringatan { color: #b00020; font-weight: 600; }
     .contoh { margin-top: 1rem; padding: 1.2rem; border-radius: 8px; background: var(--biru); color: #fff; }
@@ -52,33 +58,57 @@
     </section>
 
     <div id="tampilan-panel" hidden>
-      <section class="panel">
-        <h2>Konten</h2>
-        <p class="bantu">Kosongkan kolom untuk memakai teks bawaan website.</p>
-        <form id="form-konten">
-          <label for="hero_peran">Posisi (bagian atas)</label>
-          <input id="hero_peran" type="text" maxlength="80" placeholder="Aspiring Web Developer">
-          <label for="hero_pengantar">Kalimat pembuka</label>
-          <textarea id="hero_pengantar" maxlength="300" placeholder="Saya sedang belajar membuat website yang rapi, responsif, dan mudah dipakai untuk UMKM dan usaha lokal."></textarea>
-          <label for="tentang_1">Tentang saya, paragraf 1</label>
-          <textarea id="tentang_1" maxlength="500" placeholder="Saya Dery, pemula di bidang web development. ..."></textarea>
-          <label for="tentang_2">Tentang saya, paragraf 2</label>
-          <textarea id="tentang_2" maxlength="500" placeholder="Tujuan saya: mendapatkan pekerjaan di bidang web ..."></textarea>
-          <label for="kontak_pengantar">Kalimat di bagian Kontak</label>
-          <input id="kontak_pengantar" type="text" maxlength="200" placeholder="Punya proyek kecil atau lowongan yang cocok? ...">
-          <label for="kontak_email">Email</label>
-          <input id="kontak_email" type="email" maxlength="120" placeholder="emailanda@example.com">
-          <label for="kontak_github">Tautan GitHub</label>
-          <input id="kontak_github" type="url" pattern="https://.*" maxlength="200" placeholder="https://github.com/username">
-          <p class="bantu">Harus diawali https://</p>
-          <label for="kontak_linkedin">Tautan LinkedIn</label>
-          <input id="kontak_linkedin" type="url" pattern="https://.*" maxlength="200" placeholder="https://www.linkedin.com/in/username">
-          <div class="baris"><button type="submit">Simpan konten</button></div>
-        </form>
-      </section>
+      <datalist id="daftar-tujuan">
+        <option value="#beranda">Bagian atas</option>
+        <option value="#tentang">Bagian Tentang</option>
+        <option value="#skill">Bagian Skill</option>
+        <option value="#proyek">Bagian Proyek</option>
+        <option value="#layanan">Bagian Layanan</option>
+        <option value="#kontak">Bagian Kontak</option>
+      </datalist>
+      <p class="bantu">Kolom teks yang dikosongkan memakai teks bawaan website. Kolom "tujuan" diisi #bagian (contoh #kontak) atau tautan yang diawali https://</p>
 
-      <section class="panel">
-        <h2>Tampilan</h2>
+      <details class="panel" open>
+        <summary>Bagian utama (hero)</summary>
+        <form id="form-hero">
+          <div id="kolom-hero"></div>
+          <label for="rata">Posisi teks</label>
+          <select id="rata"><option value="kiri">Rata kiri</option><option value="tengah">Di tengah</option></select>
+          <label for="ukuran">Ukuran nama</label>
+          <select id="ukuran"><option value="kecil">Kecil</option><option value="sedang">Sedang</option><option value="besar">Besar</option></select>
+          <label class="cek"><input id="tombol1" type="checkbox"> Tampilkan tombol 1</label>
+          <label class="cek"><input id="tombol2" type="checkbox"> Tampilkan tombol 2</label>
+          <div class="baris">
+            <button type="submit">Simpan bagian utama</button>
+            <button id="reset-tata" class="sekunder" type="button">Kembalikan tata letak dan bagian ke bawaan</button>
+          </div>
+        </form>
+      </details>
+
+      <details class="panel">
+        <summary>Menu navigasi dan logo</summary>
+        <form id="form-menu">
+          <div id="kolom-logo"></div>
+          <h3>Daftar menu (maksimal 8)</h3>
+          <div id="daftar-menu"></div>
+          <div class="baris">
+            <button id="tambah-menu" class="sekunder" type="button">Tambah menu</button>
+            <button type="submit">Simpan menu</button>
+            <button id="reset-menu" class="sekunder" type="button">Kembalikan menu bawaan</button>
+          </div>
+        </form>
+      </details>
+
+      <details class="panel">
+        <summary>Bagian halaman</summary>
+        <form id="form-bagian">
+          <div id="kolom-bagian"></div>
+          <div class="baris"><button type="submit">Simpan bagian halaman</button></div>
+        </form>
+      </details>
+
+      <details class="panel">
+        <summary>Warna dan jenis tulisan</summary>
         <form id="form-tema">
           <label for="warna">Warna tema</label>
           <input id="warna" type="color" value="#14306b">
@@ -91,7 +121,7 @@
             <button id="reset-tema" class="sekunder" type="button">Kembalikan bawaan</button>
           </div>
         </form>
-      </section>
+      </details>
       <p class="bantu">Unggah file dan favicon menyusul di Tahap B.</p>
     </div>
   </main>
